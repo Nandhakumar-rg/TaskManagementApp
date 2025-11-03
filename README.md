@@ -37,29 +37,6 @@ A comprehensive task management system built with .NET Core 8, Azure SQL, and Az
 - Service tests
 - 90%+ code coverage
 
-## Architecture
-
-```
-TaskManagement/
-├── TaskManagement.API/          # Web API Controllers
-├── TaskManagement.Core/         # Domain Models & Interfaces
-├── TaskManagement.Infrastructure/ # Data Access & Services
-└── TaskManagement.Tests/        # Unit Tests
-```
-
-**Clean Architecture Pattern:**
-- **API Layer**: Controllers, DTOs, HTTP concerns
-- **Core Layer**: Entities, interfaces, business logic
-- **Infrastructure Layer**: DbContext, repositories, external services
-- **Tests Layer**: Unit tests for all layers
-
-## Prerequisites
-
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Azure SQL Database](https://azure.microsoft.com/services/sql-database/)
-- [Azure Storage Account](https://azure.microsoft.com/services/storage/) (optional for images)
-- [SQL Server Management Studio](https://aka.ms/ssmsfullsetup) or Azure Data Studio
-- Git
 
 ## Setup Instructions
 
@@ -101,29 +78,8 @@ az sql db create \
   --service-objective Basic
 ```
 
-### 3. Run Database Schema
 
-1. Open SQL Server Management Studio or Azure Data Studio
-2. Connect to your Azure SQL Database
-3. Run the `DatabaseSchema.sql` script (from artifacts above)
-
-### 4. Azure Blob Storage Setup (Optional)
-
-```bash
-# Create storage account
-az storage account create \
-  --name taskmanagementstore \
-  --resource-group TaskManagementRG \
-  --location eastus \
-  --sku Standard_LRS
-
-# Get connection string
-az storage account show-connection-string \
-  --name taskmanagementstore \
-  --resource-group TaskManagementRG
-```
-
-### 5. Configure Connection Strings
+### 3. Configure Connection Strings
 
 Update `TaskManagement.API/appsettings.json`:
 
@@ -136,22 +92,14 @@ Update `TaskManagement.API/appsettings.json`:
 }
 ```
 
-**Important:** Never commit real connection strings to GitHub. Use User Secrets for development:
 
-```bash
-cd TaskManagement.API
-dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "YOUR_CONNECTION_STRING"
-dotnet user-secrets set "ConnectionStrings:BlobStorage" "YOUR_BLOB_CONNECTION_STRING"
-```
-
-### 6. Restore Dependencies
+### 4. Restore Dependencies
 
 ```bash
 dotnet restore
 ```
 
-### 7. Run Tests
+### 5. Run Tests
 
 ```bash
 # Run all tests
@@ -161,9 +109,9 @@ dotnet test
 dotnet test /p:CollectCoverage=true
 ```
 
-Expected output: All tests pass ✅
 
-### 8. Run the Application
+
+### 6. Run the Application
 
 ```bash
 cd TaskManagement.API
@@ -174,7 +122,7 @@ The API will start at:
 - HTTPS: `https://localhost:7001`
 - HTTP: `http://localhost:5000`
 
-### 9. Access Swagger UI
+### 7. Access Swagger UI
 
 Open your browser and navigate to:
 ```
@@ -203,116 +151,18 @@ https://localhost:7001/swagger
 - `POST /api/tasks/{taskId}/images` - Upload image
 - `DELETE /api/tasks/{taskId}/images/{imageId}` - Delete image
 
-## Example API Calls
 
-### Create a Task
-```bash
-curl -X POST "https://localhost:7001/api/tasks" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Implement Feature X",
-    "description": "Add new functionality",
-    "deadline": "2025-11-15T00:00:00Z",
-    "columnId": 1
-  }'
-```
 
-### Move Task Between Columns
-```bash
-curl -X PUT "https://localhost:7001/api/tasks/1/move" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "newColumnId": 2,
-    "newOrder": 1
-  }'
-```
+## Deployment Options
 
-### Upload Image
-```bash
-curl -X POST "https://localhost:7001/api/tasks/1/images" \
-  -F "file=@screenshot.png"
-```
+### Local Development (Current Setup)
+- SQL Server LocalDB
+- File-based image storage
 
-## Database Schema
+### Production Ready (Azure)
+- Azure SQL Database (configuration provided)
+- Azure Blob Storage (implementation included)
+- Simply update connection strings to deploy to Azure
 
-**Tables:**
-- `Columns` - Work state columns (To Do, In Progress, Done)
-- `Tasks` - Task items with details
-- `TaskImages` - Image attachments for tasks
-
-**Key Features:**
-- Foreign key relationships with cascade delete
-- Indexes on frequently queried columns
-- UTC timestamps for all dates
-- Support for favorites and custom ordering
-
-## Testing Strategy
-
-**Unit Tests Cover:**
-- ✅ Repository operations (CRUD)
-- ✅ Service layer (image handling)
-- ✅ Controller actions and responses
-- ✅ Edge cases and error handling
-- ✅ Business logic (sorting, favorites)
-
-**Test Technologies:**
-- xUnit for test framework
-- Moq for mocking
-- FluentAssertions for readable assertions
-- In-Memory Database for integration tests
-
-## Key Design Decisions
-
-1. **Clean Architecture** - Separation of concerns with layers
-2. **Repository Pattern** - Abstraction over data access
-3. **DTOs** - Separate API models from domain entities
-4. **Async/Await** - All database operations are asynchronous
-5. **Dependency Injection** - Loose coupling and testability
-6. **UTC Timestamps** - Consistent time handling across time zones
-
-## Sorting Logic
-
-Tasks are sorted with the following priority:
-1. **Favorites first** - `IsFavorite = true` tasks appear at the top
-2. **Alphabetical** - Within each group, sorted by name (A-Z)
-
-This ensures favorited tasks are always visible while maintaining organization.
-
-## Future Enhancements
-
-- User authentication and authorization
-- Task assignments to users
-- Comments on tasks
-- Task history and audit log
-- Real-time updates with SignalR
-- Email notifications for deadlines
-- Task dependencies and subtasks
-
-## Troubleshooting
-
-### Cannot connect to Azure SQL
-- Check firewall rules in Azure Portal
-- Add your IP address to allowed IPs
-- Verify connection string format
-
-### Tests failing
-- Ensure all NuGet packages are restored
-- Check .NET 8 SDK is installed
-- Clean and rebuild solution
-
-### Swagger not loading
-- Check the application is running on correct port
-- Verify `UseSwagger()` is in Program.cs
-- Try accessing `/swagger/index.html` directly
-
-## License
-
-MIT License - Feel free to use this project for learning and development.
-
-## Author
-
-Built as part of .NET Core Developer Assessment
-
-## Contact
-
-For questions or issues, please open an issue on GitHub.
+The application is **cloud-ready** and can be deployed to Azure 
+by updating appsettings.json with Azure connection strings.
